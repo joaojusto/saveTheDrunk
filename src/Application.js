@@ -25,7 +25,7 @@ exports = Class(GC.Application, function () {
 				var drunk = GC.app.drunks[r];
 				
 				//If the touch was over any drunk, cleans the old trail and sets recording and target to start recording
-				if (drunk.containsLocalPoint (pt)) {
+				if (drunk.pointInDrunk (pt)) {
 					
 					GC.app.target = r;
 					GC.app.recording = true;
