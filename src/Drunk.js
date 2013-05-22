@@ -12,9 +12,13 @@ exports = new Class(View, function(supr) {
 		supr(this, "init", [merge(opts, {width: 50, height: 50, backgroundColor: "#000000"})]);
 		this._dt = 0;
 		this.angle = 0;
-		this.velocidade = 100;
-		this.theta = 20 * 180 / Math.PI;
-		this.velocity = new Point (0,0);
+		this.velocidade = 2;
+		this.teta = 20 * 180 / Math.PI;
+		
+		var y = this.velocidade * Math.sin(this.teta);
+        var x = this.velocidade * Math.cos(this.teta);
+		
+		this.velocity = new Point (x,y);
 		
 		this.trail = [];
 	};
@@ -78,15 +82,16 @@ exports = new Class(View, function(supr) {
 		
 		this._dt += dt;
 		
-		/* TODO drunk movement
-		if(0 > 0) {
+
+		if(this.trail.length > 0) {
 			
-			var trail = GC.app._trail[0];
-			var target = new Point(trail.x, trail.y);
+			var trail = this.trail[0];
+			var target = new Point(trail.style.x, trail.style.y);
 			
 			if(this.containsLocalPoint (target)) {
 				
-				GC.app._trail.shift();
+				trail.clean();
+				this.trail.shift();
 				console.log("Reached: " + target.x + " ," + target.y);
 				
 			} else {
@@ -94,33 +99,82 @@ exports = new Class(View, function(supr) {
 				this.updatePosition(target, dt);
 				console.log("Moving towards: " + target.x + " ," + target.y);
 			};
+			
 		} else {
 			
-		};*/
+			this.updatePositonNoTarget();
+		};
 	};
 	
-	this.updatePositon = function () {
+	this.updateVariables = function (nextPos) {
 		
+		if(nextPos.x < 0) {
+			
+			nextPos.x = 0;
+			this.velocity.x = -this.velocity.x;
+			
+		} else if (nextPos.x + this.style.width > 480){
+			
+			nextPos.x = 480 - this.style.width;
+			this.velocity.x = - this.velocity.x;
+		};
+
+		if(nextPos.y < 0) {
+			
+			nextPos.y = 0;
+			this.velocity.y = - this.velocity.y;
+			
+		} else if (nextPos.y + this.style.height > 320){
+			
+			nextPos.y = 320 - this.style.height;
+			this.velocity.y = - this.velocity.y;
+		}
+		
+		var xfxi = nextPos.x - this.style.x;
+        var yfyi = nextPos.y - this.style.y;
+        
+        var ang = -(Math.atan2(xfxi, yfyi) * 180 / Math.PI);
+		
+		var opts = {x: nextPos.x, y: nextPos.y, angle: ang};
+        
+        this.updateOpts(opts);
+	};
+	
+	this.updatePositonNoTarget = function () {
+	
+        var x, y;
+
+        y = this.velocity.y;
+        x = this.velocity.x;
+        
+        var pos = new Point (this.style.x + x, this.style.y + y);
+        
+        var xfxi = pos.x - this.style.x;
+        var yfyi = pos.y - this.style.y;
+        
+        this.updateVariables(pos);
 	};
 	
 	this.updatePosition = function (nextPoint, deltaTime) {
 		
-		var xfxi = nextPoint.x - this.x;
-        var yfyi = nextPoint.y - this.y;
-        var m, x, y;
+		var xfxi = nextPoint.x - this.style.x;
+        var yfyi = nextPoint.y - this.style.y;
+        var m, x, y, teta;
 
         m = yfyi / xfxi;
         teta = Math.atan(m);
 
-        y = this.velocidade * Math.sin(theta);
-        x = this.velocidade * Math.cos(theta);
+        y = this.velocidade * Math.sin(teta);
+        x = this.velocidade * Math.cos(teta);
         
-        var pos = new Point (x * deltaTime, y * deltaTime);
+        var velocity = new Point (x,y);
+        
+        var pos = new Point (this.style.x + x, this.style.y + y);
         
         var ang = -(Math.atan2(xfxi, yfyi) * 180 / Math.PI);
         
-        var opts = {x: pos.x, y: pos.y, velocity: new Point (x, y), angle: ang, theta: teta};
+        var opts = {x: pos.x, y: pos.y, velocity: velocity, angle: ang, teta: teta};
         
         this.updateOpts(opts);
-	};*/
+	};
 });
