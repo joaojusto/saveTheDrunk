@@ -9,18 +9,13 @@ exports = new Class (View, function (supr) {
 		this._dt = 0;
 	};
 
+	//actualy remove the dots from view
 	this.clean = function () {
 		
 		this.removeFromSuperview();
 	};
 	
-	this.reset = function (opts) {
-
-		this._dt = 0;
-		
-		this.updateOpts(opts);
-	};
-	
+	//keeps track of the time the trails are on screen
 	this.tick = function (dt) {
 		
 		this._dt += dt;
