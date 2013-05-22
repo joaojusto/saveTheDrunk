@@ -1,4 +1,5 @@
 import ui.View as View;
+import src.TrailBox as TrailBox;
 import math.geom.Point as Point;
 
 exports = new Class(View, function(supr) {
@@ -11,8 +12,23 @@ exports = new Class(View, function(supr) {
 		this.velocidade = 100;
 		this.theta = 20 * 180 / Math.PI;
 		this.velocity = new Point (0,0);
+		
+		this.trail = [];
 	};
 
+	this.addTrail = function (opts) {
+		
+		this.trail.push(new TrailBox(opts))
+	}
+	
+	this.cleanTrail = function () {
+		
+		for (i = 0; i < this.trail.length; i++) {
+			
+			this.trail[i].clean();
+		}
+		this.trail = [];
+	}
 
 	this.reset = function (opts) {
 
