@@ -4,6 +4,8 @@ import math.geom.Point as Point;
 
 exports = new Class(View, function(supr) {
 	
+	this.distanceBtTrails = 10;
+	
 	this.init = function (opts) {
 		
 		supr(this, "init", [merge(opts, {width: 50, height: 50, backgroundColor: "#000000"})]);
@@ -18,7 +20,45 @@ exports = new Class(View, function(supr) {
 
 	this.addTrail = function (opts) {
 		
-		this.trail.push(new TrailBox(opts))
+		if (this.trail.length == 0) {
+		
+			var dX, dY, distance;
+			var posX = (this.style.x + this.style.width) / 2; // actual position (center of the square or image);
+			var posY = (this.style.x + this.style.width) / 2;
+			
+			console.log("Corrected pos = " + posX + ", " + posY);
+			
+			dX = posX - opts.x, dY = posY - opts.y;
+	        
+			dX = Math.pow(dX, 2);
+	        dY = Math.pow(dY, 2);
+	        
+	        distance = Math.sqrt(dX + dY);
+	        
+	        console.log("Distance = " + distance);
+	        
+	        if (distance > this.style.width) {
+            	
+            	this.trail.push(new TrailBox(opts))
+            }
+		
+		} else {
+			
+			var dX, dY, distance;
+			var lastTrail = this.trail[this.trail.length - 1];
+			
+			dX = (lastTrail.style.x - opts.x), dY = (lastTrail.style.y - opts.y);
+	        
+			dX = Math.pow(dX, 2);
+	        dY = Math.pow(dY, 2);
+	        
+	        distance = Math.sqrt(dX + dY);
+	        
+			if (distance > this.distanceBtTrails) {
+            	
+            	this.trail.push(new TrailBox(opts))
+            }
+		}
 	}
 	
 	this.cleanTrail = function () {
