@@ -28,17 +28,13 @@ exports = new Class(View, function(supr) {
 		//if there's no trail 
 		if (this.trail.length == 0) {
 		
-			var dX, dY, distance;
 			var posX = (this.style.x + this.style.width) / 2; // actual position (center of the square or image);
 			var posY = (this.style.x + this.style.width) / 2;
 			
-			//some math to calculate the distance between points
-			dX = posX - opts.x, dY = posY - opts.y;
-	        
-			dX = Math.pow(dX, 2);
-	        dY = Math.pow(dY, 2);
-	        
-	        distance = Math.sqrt(dX + dY);
+			var pos = new Point (posX, posY);
+			var target = new Point(opts.x, opts.y);
+			
+	        distance = this.distanceBt2Points(target, pos);
 	        
 	        //adds only if trail point is out of the box or image
 	        if (distance > this.style.width) {
@@ -50,15 +46,12 @@ exports = new Class(View, function(supr) {
 			
 			//if there's trails, checks if there's a minimum distance between them
 			
-			var dX, dY, distance;
 			var lastTrail = this.trail[this.trail.length - 1];
 			
-			dX = (lastTrail.style.x - opts.x), dY = (lastTrail.style.y - opts.y);
+			var pos = new Point (lastTrail.style.x, lastTrail.style.y);
+			var target = new Point(opts.x, opts.y);
 	        
-			dX = Math.pow(dX, 2);
-	        dY = Math.pow(dY, 2);
-	        
-	        distance = Math.sqrt(dX + dY);
+	        distance = this.distanceBt2Points(target, pos);
 	        
 			if (distance > this.distanceBtTrails) {
             	
@@ -88,7 +81,7 @@ exports = new Class(View, function(supr) {
 			var trail = this.trail[0];
 			var target = new Point(trail.style.x, trail.style.y);
 			
-			if(this.containsLocalPoint (target)) {
+			if(this.pointInDrunk (target)) {
 				
 				trail.clean();
 				this.trail.shift();
@@ -164,8 +157,21 @@ exports = new Class(View, function(supr) {
         m = yfyi / xfxi;
         teta = Math.atan(m);
 
-        y = this.velocidade * Math.sin(teta);
-        x = this.velocidade * Math.cos(teta);
+        if (xfxi < 0 && yfyi < 0)
+        {
+            y = -this.velocidade * Math.sin(teta);
+            x = -this.velocidade * Math.cos(teta);
+        }
+        else if (m <= 0 && xfxi < 0 && yfyi > 0)
+        {
+            y = -this.velocidade * Math.sin(teta);
+            x = -this.velocidade * Math.cos(teta);
+        }
+        else
+        {
+            y = this.velocidade * Math.sin(teta);
+            x = this.velocidade * Math.cos(teta);
+        }
         
         var velocity = new Point (x,y);
         
@@ -176,5 +182,35 @@ exports = new Class(View, function(supr) {
         var opts = {x: pos.x, y: pos.y, velocity: velocity, angle: ang, teta: teta};
         
         this.updateOpts(opts);
+	};
+	
+	this.distanceBt2Points = function (finalPoint, inicialPoint) {
+		
+		var dX, dY, distance;
+		
+		//some math to calculate the distance between points
+		dX = finalPoint.x - inicialPoint.x, dY = finalPoint.x - inicialPoint.x;
+        
+		dX = Math.pow(dX, 2);
+        dY = Math.pow(dY, 2);
+        
+        distance = Math.sqrt(dX + dY);
+        
+        return distance;
+		
+	};
+
+	this.pointInDrunk = function (p) {
+
+		lowerLeft = new Point(this.style.x, this.style.y - this.style.height);
+		
+		if(lowerLeft.x <= p.x){
+			if(lowerLeft.x + this.style.width >= p.x)
+				if(lowerLeft.y <= p.y)
+					if (lowerLeft.y + this.style.height >= p.y);
+						return true
+		} else {
+			return false;
+		};
 	};
 });
