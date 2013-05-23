@@ -11,7 +11,9 @@ exports = new Class(View, function(supr) {
 
 	//minimum distance between trail dots
 	this.distanceBetweenTrails = 10;
-
+	//the max displacement every frame in pixels;
+	this.maxdisplacement = 2;
+	
 	this.init = function(opts) {
     var trailBoxOptions = {
       width: 50,
@@ -21,47 +23,62 @@ exports = new Class(View, function(supr) {
 
 		supr(this, "init", [merge(opts, trailBoxOptions)]);
 
-		this.angle = 0;
-		this.velocidade = 2;
-		this.teta = 20 * 180 / Math.PI;
+		this.angle = 0; // this angle is the one used to rotate the object acording to direction it is moving
 
-		var y = this.velocidade * Math.sin(this.teta);
-    var x = this.velocidade * Math.cos(this.teta);
+		this.teta = 20 * 180 / Math.PI; // 20 is the angle that will give direction to the movement
+									    // 180 / Math.PI is the conversion to radians
+
+		var y = this.maxdisplacement * Math.sin(this.teta);
+		var x = this.maxdisplacement * Math.cos(this.teta);
 
 		this.velocity = new Point (x,y);
 
 		this.trail = [];
+		
+		//if is touched, sets the target on main function to himself;
+		this.onInputStart = function () {
+			
+			target = GC.app.target;
+			index = GC.app.drunks.indexOf(this);
+			
+			//only starts recording if theres is no recording target;
+			if(target == -1) {
+				GC.app.target = index;
+				this.cleanTrail();
+			};
+		};
 	};
 
 	this.addTrail = function (opts) {
-		//if there's no trail
-		if (this.trail.length == 0) {
-      // actual position (center of the square or image);
+
+		if (this.trail.length == 0) { //if there's no trail
+
+			// actual position (center of the square or image);
 			var posX = this.style.x + this.style.width * 0.5;
-			var posY = this.style.x + this.style.width * 0.5;
+			var posY = this.style.y + this.style.height * 0.5;
 
 			var pos = new Point (posX, posY);
 			var target = new Point(opts.x, opts.y);
 
-      distance = this.distanceBetween2Points(pos, target);
+			distance = this.distanceBetween2Points(pos, target);
 
-      //adds only if trail point is out of the box or image
-      if (distance > this.style.width) {
-        this.trail.push(new TrailBox(opts));
-      }
+			//adds only if trail point is out of the box or image
+			if (distance > this.style.width) {
+				this.trail.push(new TrailBox(opts));
+			}
 
-      //if there's trails, checks if there's a minimum distance between them
-		} else {
+			
+		} else { //if there's trails, checks if there's a minimum distance between them
 			var lastTrail = this.trail[this.trail.length - 1];
 
 			var pos = new Point (lastTrail.style.x, lastTrail.style.y);
 			var target = new Point(opts.x, opts.y);
 
-      distance = this.distanceBetween2Points(pos, target);
+			distance = this.distanceBetween2Points(pos, target);
 
-      if (distance > this.distanceBetweenTrails) {
-        this.trail.push(new TrailBox(opts));
-      }
+			if (distance > this.distanceBetweenTrails) {
+				this.trail.push(new TrailBox(opts));
+			}
 		}
 	};
 
@@ -143,16 +160,16 @@ exports = new Class(View, function(supr) {
     teta = Math.atan(m);
 
     if (xfxi < 0 && yfyi < 0) {
-      y = -this.velocidade * Math.sin(teta);
-      x = -this.velocidade * Math.cos(teta);
+      y = -this.maxdisplacement * Math.sin(teta);
+      x = -this.maxdisplacement * Math.cos(teta);
 
     } else if (m <= 0 && xfxi < 0 && yfyi > 0) {
-      y = -this.velocidade * Math.sin(teta);
-      x = -this.velocidade * Math.cos(teta);
+      y = -this.maxdisplacement * Math.sin(teta);
+      x = -this.maxdisplacement * Math.cos(teta);
 
     } else {
-      y = this.velocidade * Math.sin(teta);
-      x = this.velocidade * Math.cos(teta);
+      y = this.maxdisplacement * Math.sin(teta);
+      x = this.maxdisplacement * Math.cos(teta);
     }
 
     var velocity = new Point (x,y);
