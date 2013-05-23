@@ -23,7 +23,7 @@ exports = Class(GC.Application, function () {
 			if(GC.app.target != -1) {
 			
 				var opts = {superview: GC.app.view, x: pt.x - 3, y: pt.y - 3};
-				GC.app.drunks[GC.app.target].addTrail(pt);
+				GC.app.drunks[GC.app.target].addTrail(opts);
 			};
 		});
 		
