@@ -58,6 +58,10 @@ exports = new Class(View, function(supr) {
 				this.cleanTrail();
 			};
 		};
+		
+		this.onInputMove = function () {
+			
+		};
 	};
 
 	//actually add the trails
