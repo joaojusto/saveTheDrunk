@@ -46,9 +46,6 @@ exports = new Class(View, function(supr) {
 		var x = this.maxdisplacement * Math.cos(this.teta);
 		this.velocity = new Point (0,0);
 		
-		//starts the animation engine;
-		this.animate.call(this);
-		
 		//if is touched, sets the target on main function to himself;
 		this.onInputStart = function () {
 			
@@ -60,6 +57,10 @@ exports = new Class(View, function(supr) {
 				GC.app.target = index;
 				this.cleanTrail();
 			};
+		};
+		
+		this.onInputMove = function () {
+			
 		};
 	};
 
@@ -110,38 +111,23 @@ exports = new Class(View, function(supr) {
 			
 			//gets the oldest trail start moving towards it;
 			var trail = this.trail[0];
-			animate(this).now({x: trail.style.x, y: trail.style.y}, 100, animate.linear);
+			animate(this).now({x: trail.style.x, y: trail.style.y}, 100, animate.linear)
+			.then(this.moveUp());
 		};
 	}
 	
-	//handles the collisions 
-	this.checkCollisions = function () {
+	//removes the oldest trail when drunk collides with it;
+	this.moveUp = function () {
 		
-		var trail;
-		var length = this.trail.length;
-		
-		//for every trail, checks if collides with this drunk;
-		for(i = 0; i < length; i++) {
-			
-			trail = this.trail[i];
-			rect1 = new Rect(this.style.x, this.style.y, this.style.width, this.style.height);
-			rect2 = new Rect(trail.style.x, trail.style.y, trail.style.width, trail.style.height);
-			
-			//if collides then remove the trail
-			if(intersect.rectAndRect (rect1, rect2)) {
-				
-				trail.clean();
-				this.trail.shift();
-				length--;
-			};
-		};
+		this.trail[0].clean();
+		this.trail.shift();
 	};
 	
 	//called every time the drunk is drawn
 	this.tick = function (deltaTime) {
 		
-		this.checkCollisions();
-		this.animate(deltaTime);
+		if(!animate(this).hasFrames())
+			this.animate(deltaTime);
 	};
 
 });
