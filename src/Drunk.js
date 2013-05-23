@@ -1,7 +1,10 @@
 //DevKit imports
+import animate;
 import ui.View as View;
-import math.geom.Point as Point;
 import math.geom.Line as Line;
+import math.geom.Rect as Rect;
+import math.geom.Point as Point;
+import math.geom.intersect as intersect;
 
 //our our imports
 import .TrailBox as TrailBox;
@@ -11,178 +14,134 @@ exports = new Class(View, function(supr) {
 
 	//minimum distance between trail dots
 	this.distanceBetweenTrails = 10;
-
+	//the max displacement every frame in pixels;
+	this.maxdisplacement = 2;
+	
+	//class constructor;
 	this.init = function(opts) {
-    var trailBoxOptions = {
-      width: 50,
-      height: 50,
-      backgroundColor: "#000000"
-    };
-
+		
+		var trailBoxOptions = {
+		width: 50,
+		height: 50,
+		backgroundColor: "#000000"
+		};
+		
+		//merge the options passed to this function and
+		//those initialized above;
 		supr(this, "init", [merge(opts, trailBoxOptions)]);
-
-		this.angle = 0;
-		this.velocidade = 2;
-		this.teta = 20 * 180 / Math.PI;
-
-		var y = this.velocidade * Math.sin(this.teta);
-    var x = this.velocidade * Math.cos(this.teta);
-
-		this.velocity = new Point (x,y);
-
+		
+		//the trailBox array;
 		this.trail = [];
+		
+		//this angle is the one used to rotate 
+		//the object according to direction it is moving;
+		this.angle = 0; 
+		
+		// 20 is the angle that will give direction to the movement
+	    // 180 / Math.PI is the conversion to radians;
+		this.teta = 20 * 180 / Math.PI;
+		
+		//calculates the velocity vector;
+		var y = this.maxdisplacement * Math.sin(this.teta);
+		var x = this.maxdisplacement * Math.cos(this.teta);
+		this.velocity = new Point (0,0);
+		
+		//starts the animation engine;
+		this.animate.call(this);
+		
+		//if is touched, sets the target on main function to himself;
+		this.onInputStart = function () {
+			
+			target = GC.app.target;
+			index = GC.app.drunks.indexOf(this);
+			
+			//only starts recording if theres is no recording target;
+			if(target == -1) {
+				GC.app.target = index;
+				this.cleanTrail();
+			};
+		};
 	};
 
+	//actually add the trails
 	this.addTrail = function (opts) {
-		//if there's no trail
-		if (this.trail.length == 0) {
-      // actual position (center of the square or image);
-			var posX = this.style.x + this.style.width * 0.5;
-			var posY = this.style.x + this.style.width * 0.5;
-
-			var pos = new Point (posX, posY);
-			var target = new Point(opts.x, opts.y);
-
-      distance = this.distanceBetween2Points(pos, target);
-
-      //adds only if trail point is out of the box or image
-      if (distance > this.style.width) {
-        this.trail.push(new TrailBox(opts));
-      }
-
-      //if there's trails, checks if there's a minimum distance between them
-		} else {
+		
+		if(this.trail.length == 0) { //if there's no trail
+			
+			var pos = new Point(this.style.x + this.style.width * 0.5, 
+					this.style.y + this.style.height * 0.5);
+			var line = new Line (pos, new Point(opts.x, opts.y));
+			
+			//adds only if trail point is out of the box or image
+			if (line.getLength() > this.style.width)
+				this.trail.push(new TrailBox(opts));
+			
+		} else { //if there's trails, checks if there's a minimum distance between them
+			
 			var lastTrail = this.trail[this.trail.length - 1];
-
-			var pos = new Point (lastTrail.style.x, lastTrail.style.y);
-			var target = new Point(opts.x, opts.y);
-
-      distance = this.distanceBetween2Points(pos, target);
-
-      if (distance > this.distanceBetweenTrails) {
-        this.trail.push(new TrailBox(opts));
-      }
-		}
+			var line = new Line (new Point (lastTrail.style.x, lastTrail.style.y), 
+					new Point(opts.x, opts.y));
+			
+			if (line.getLength() > this.distanceBetweenTrails)
+				this.trail.push(new TrailBox(opts));
+		};
 	};
 
 	//remove all the trail dots
 	this.cleanTrail = function () {
+		
 		for (i = 0; i < this.trail.length; i++) {
 			this.trail[i].clean();
 		}
 		this.trail = [];
 	}
 
-	//called every time the drunk is drawn
-	this.tick = function (dt) {
-
-    if(this.trail.length > 0) {
+	// handles the drunk animation events
+	this.animate = function (deltaTime) {
+		
+		if(this.trail.length == 0) {
+			
+			//if the trail box is empty continues moving in the direction
+			//of the last post;
+			animate(this).now({x: this.style.x + this.velocity.x, 
+				y: this.style.y + this.velocity.y}, deltaTime, animate.linear);
+			
+		} else {
+			
+			//gets the oldest trail start moving towards it;
 			var trail = this.trail[0];
-			var target = new Point(trail.style.x, trail.style.y);
-
-			if(this.pointInDrunk(target)) {
+			animate(this).now({x: trail.style.x, y: trail.style.y}, 100, animate.linear);
+		};
+	}
+	
+	//handles the collisions 
+	this.checkCollisions = function () {
+		
+		var trail;
+		var length = this.trail.length;
+		
+		//for every trail, checks if collides with this drunk;
+		for(i = 0; i < length; i++) {
+			
+			trail = this.trail[i];
+			rect1 = new Rect(this.style.x, this.style.y, this.style.width, this.style.height);
+			rect2 = new Rect(trail.style.x, trail.style.y, trail.style.width, trail.style.height);
+			
+			//if collides then remove the trail
+			if(intersect.rectAndRect (rect1, rect2)) {
+				
 				trail.clean();
 				this.trail.shift();
-				console.log("Reached: " + target.x + " ," + target.y);
-
-			} else {
-				this.updatePosition(target, dt);
-				console.log("Moving towards: " + target.x + " ," + target.y);
+				length--;
 			};
-
-		} else {
-			this.updatePositonNoTarget();
-		}
+		};
 	};
-
-	this.updateVariables = function (nextPos) {
-		if(nextPos.x < 0) {
-			nextPos.x = 0;
-			this.velocity.x = -this.velocity.x;
-
-		} else if (nextPos.x + this.style.width > 480) {
-			nextPos.x = 480 - this.style.width;
-			this.velocity.x = - this.velocity.x;
-		}
-
-		if(nextPos.y < 0) {
-			nextPos.y = 0;
-			this.velocity.y = - this.velocity.y;
-
-		} else if (nextPos.y + this.style.height > 320){
-			nextPos.y = 320 - this.style.height;
-			this.velocity.y = - this.velocity.y;
-		}
-
-		var xfxi = nextPos.x - this.style.x;
-    var yfyi = nextPos.y - this.style.y;
-    var ang = -(Math.atan2(xfxi, yfyi) * 180 / Math.PI);
-		var opts = {x: nextPos.x, y: nextPos.y, angle: ang};
-
-    this.updateOpts(opts);
+	
+	//called every time the drunk is drawn
+	this.tick = function (deltaTime) {
+		
+		this.checkCollisions();
+		this.animate(deltaTime);
 	};
-
-	this.updatePositonNoTarget = function () {
-    var y = this.velocity.y;
-    var x = this.velocity.x;
-
-    var pos = new Point (this.style.x + x, this.style.y + y);
-
-    var xfxi = pos.x - this.style.x;
-    var yfyi = pos.y - this.style.y;
-
-    this.updateVariables(pos);
-	};
-
-	this.updatePosition = function (nextPoint, deltaTime) {
-		var m, x, y, teta;
-    var xfxi = nextPoint.x - this.style.x;
-    var yfyi = nextPoint.y - this.style.y;
-
-    m = yfyi / xfxi;
-    teta = Math.atan(m);
-
-    if (xfxi < 0 && yfyi < 0) {
-      y = -this.velocidade * Math.sin(teta);
-      x = -this.velocidade * Math.cos(teta);
-
-    } else if (m <= 0 && xfxi < 0 && yfyi > 0) {
-      y = -this.velocidade * Math.sin(teta);
-      x = -this.velocidade * Math.cos(teta);
-
-    } else {
-      y = this.velocidade * Math.sin(teta);
-      x = this.velocidade * Math.cos(teta);
-    }
-
-    var velocity = new Point (x,y);
-
-    var pos = new Point (this.style.x + x, this.style.y + y);
-
-    var ang = -(Math.atan2(xfxi, yfyi) * 180 / Math.PI);
-
-    var opts = {x: pos.x, y: pos.y, velocity: velocity, angle: ang, teta: teta};
-
-    this.updateOpts(opts);
-	};
-
-	this.distanceBetween2Points = function (point1, point2) {
-		var line = new Line(point1, point2);
-
-    return line.getLength();
-	};
-
-  this.pointInDrunk = function (p) {
-    lowerLeft = new Point(this.style.x, this.style.y - this.style.height);
-
-    if(lowerLeft.x <= p.x){
-      if(lowerLeft.x + this.style.width >= p.x)
-        if(lowerLeft.y <= p.y)
-          if (lowerLeft.y + this.style.height >= p.y);
-            return true
-    } else {
-      return false;
-    };
-  };
 
 });
