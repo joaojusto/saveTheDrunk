@@ -20,34 +20,26 @@ exports = new Class(View, function(supr) {
 	//class constructor;
 	this.init = function(opts) {
 		
-		var trailBoxOptions = {
+		var drunkOptions = {
 		width: 50,
 		height: 50,
+		offsetX: -25,
+		offsetY: -25,
 		backgroundColor: "#000000"
 		};
 		
 		//merge the options passed to this function and
 		//those initialized above;
-		supr(this, "init", [merge(opts, trailBoxOptions)]);
+		supr(this, "init", [merge(opts, drunkOptions)]);
 		
 		//the trailBox array;
 		this.trail = [];
 		
-		//this angle is the one used to rotate 
-		//the object according to direction it is moving;
-		this.angle = 0; 
-		
-		// 20 is the angle that will give direction to the movement
-	    // 180 / Math.PI is the conversion to radians;
-		this.teta = 20 * 180 / Math.PI;
+		//velocity value;
+		this.velocity = 0.25;
 		
 		//starts the animation engine;
 		this.animate();
-		
-		//calculates the velocity vector;
-		var y = this.maxdisplacement * Math.sin(this.teta);
-		var x = this.maxdisplacement * Math.cos(this.teta);
-		this.velocity = 0.25;
 		
 		//if is touched, sets the target on main function to himself;
 		this.onInputStart = function () {
@@ -60,10 +52,6 @@ exports = new Class(View, function(supr) {
 				GC.app.target = index;
 				this.cleanTrail();
 			};
-		};
-		
-		this.onInputMove = function () {
-			
 		};
 	};
 
@@ -107,8 +95,8 @@ exports = new Class(View, function(supr) {
 		//if the trail box is empty continues moving in the direction of the last post;
 		if(this.trail.length === 0) {
 			nextPosition = {
-					x: this.style.x + 1,
-					y: this.style.y + 1
+					x: this.style.x + this.velocity,
+					y: this.style.y + this.velocity
 			};
 
 		} else {
@@ -128,7 +116,7 @@ exports = new Class(View, function(supr) {
 		var distance = line.getLength();
 
 		deltaTime = distance / this.velocity;
-
+		
 		animate(this).now(nextPosition, deltaTime, animate.linear)
 		.then(function() {
 			this.animate();
