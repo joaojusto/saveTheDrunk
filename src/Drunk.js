@@ -9,7 +9,6 @@ import math.geom.intersect as intersect;
 //our our imports
 import .TrailBox as TrailBox;
 
-
 exports = new Class(View, function(supr) {
 
 	//minimum distance between trail dots
