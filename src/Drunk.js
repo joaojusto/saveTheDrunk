@@ -41,10 +41,13 @@ exports = new Class(View, function(supr) {
 	    // 180 / Math.PI is the conversion to radians;
 		this.teta = 20 * 180 / Math.PI;
 		
+		//starts the animation engine;
+		this.animate();
+		
 		//calculates the velocity vector;
 		var y = this.maxdisplacement * Math.sin(this.teta);
 		var x = this.maxdisplacement * Math.cos(this.teta);
-		this.velocity = new Point (0,0);
+		this.velocity = 0.25;
 		
 		//if is touched, sets the target on main function to himself;
 		this.onInputStart = function () {
@@ -98,36 +101,38 @@ exports = new Class(View, function(supr) {
 	}
 
 	// handles the drunk animation events
-	this.animate = function (deltaTime) {
-		
-		if(this.trail.length == 0) {
-			
-			//if the trail box is empty continues moving in the direction
-			//of the last post;
-			animate(this).now({x: this.style.x + this.velocity.x, 
-				y: this.style.y + this.velocity.y}, deltaTime, animate.linear);
-			
+	this.animate = function() {
+		var nextPosition, trail, deltaTime;
+
+		//if the trail box is empty continues moving in the direction of the last post;
+		if(this.trail.length === 0) {
+			nextPosition = {
+					x: this.style.x + 1,
+					y: this.style.y + 1
+			};
+
 		} else {
-			
 			//gets the oldest trail start moving towards it;
-			var trail = this.trail[0];
-			animate(this).now({x: trail.style.x, y: trail.style.y}, 100, animate.linear)
-			.then(this.moveUp());
+			this.trail[0].clean();
+			trail = this.trail.shift();
+
+			nextPosition = {
+					x: trail.style.x,
+					y: trail.style.y
+			};
 		};
-	}
-	
-	//removes the oldest trail when drunk collides with it;
-	this.moveUp = function () {
-		
-		this.trail[0].clean();
-		this.trail.shift();
-	};
-	
-	//called every time the drunk is drawn
-	this.tick = function (deltaTime) {
-		
-		if(!animate(this).hasFrames())
-			this.animate(deltaTime);
+
+		var currentPosition = new Point(this.style.x, this.style.y);
+		var nextPosition = new Point(nextPosition.x, nextPosition.y);
+		var line = new Line(currentPosition, nextPosition);
+		var distance = line.getLength();
+
+		deltaTime = distance / this.velocity;
+
+		animate(this).now(nextPosition, deltaTime, animate.linear)
+		.then(function() {
+			this.animate();
+		});
 	};
 
 });
