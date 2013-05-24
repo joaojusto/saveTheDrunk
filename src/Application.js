@@ -2,6 +2,7 @@ import device;
 
 import .Drunk as Drunk;
 import .TrailBox as TrailBox;
+import .Menus as Menus;
 
 var BOUNDS_WIDTH = 1024;
 var BOUNDS_HEIGHT = 576;
@@ -12,10 +13,12 @@ exports = Class(GC.Application, function () {
 	this.initUI = function () {
 		this.scaleUI();
 
+		Menus.createMenus();
+
 		this.style.backgroundColor = "#FFFFFF";
 
 		//Drunk array;
-		this.drunks = [new Drunk({superview: this, x: 20, y: 20}), 
+		this.drunks = [new Drunk({superview: this, x: 20, y: 20}),
 		               new Drunk({superview: this, x: 100, y: 100})];
 
 		//Target to send the touch points;
