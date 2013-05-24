@@ -1,12 +1,11 @@
 import menus.views.MenuView as MenuView;
 
 exports.createMenus = function() {
-		/* Create and show main menu
-		 * When the Start Game menu item is pressed, emits an gameStarted event
-		 * When the Settings or the Tutorial is pressed, shows the correspondent menu
-		 */
 
 		var rootView = GC.app.view;
+
+		//Create main menu
+		//When any item from this menu is pressed, emits the correspondent event
 		rootView.mainMenu = new MenuView({
 			superview: rootView,
 			title: 'Main Menu',
@@ -17,35 +16,41 @@ exports.createMenus = function() {
 			]
 		}).show();
 
-		//create settings menus
+		//create settings menu
+		//When the back button is pressed, show mainMenu
 		rootView.settingsMenu = new MenuView({
 			superview: rootView,
 			title: 'Settings',
 			items: [
-				{item: 'Som', action: 'coiso'}
+				{item: 'O justo é gay', action: 'coiso'}
 			],
 			backCB: bind(rootView.mainMenu, 'show')
 		});
 
 		//create tutorial menu
+		//When the back button is pressed, show mainMenu
 		rootView.tutorialDialog = new MenuView({
 			superview: rootView,
 			title: 'Tutorial',
 			items: [
-				{item: 'Som', action: 'coisito'}
+				{item: 'O barola também', action: 'coisito'}
 			],
 			backCB: bind(rootView.mainMenu, 'show')
 		});
 
-		GC.app.view.mainMenu.on('gameStarted', bind(this, function(){
+		//When it receives the gameStarted event emits another event to be listened for in the Application
+		//
+		/*rootView.mainMenu.on('gameStarted', bind(this, function(){
 			this.emit('menus:start');
-		}));
+		}));*/
 
-		GC.app.view.mainMenu.on('showSettingsMenu', bind(this, function(){
+		//When it receives the showSettingsMenu event, shows the correspondent menu
+		rootView.mainMenu.on('showSettingsMenu', bind(this, function(){
 			rootView.settingsMenu.show();
 		}));
 
-		GC.app.view.mainMenu.on('showTutorialDialog', bind(this, function(){
+		//When it receives the showTutorialDialog event, shows the correspondent menu
+		rootView.mainMenu.on('showTutorialDialog', bind(this, function(){
 			rootView.tutorialDialog.show();
 		}));
 };
