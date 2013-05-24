@@ -36,7 +36,7 @@ exports = new Class(View, function(supr) {
 		this.trail = [];
 		
 		//velocity value;
-		this.velocity = 0.25;
+		this.velocity = 0.15;
 		
 		//starts the animation engine;
 		this.animate();
@@ -57,23 +57,17 @@ exports = new Class(View, function(supr) {
 
 	//actually add the trails
 	this.addTrail = function (opts) {
-		
-		if(this.trail.length == 0) { //if there's no trail
-			
-			var pos = new Point(this.style.x + this.style.width * 0.5, 
-					this.style.y + this.style.height * 0.5);
-			var line = new Line (pos, new Point(opts.x, opts.y));
-			
-			//adds only if trail point is out of the box or image
-			if (line.getLength() > this.style.width)
-				this.trail.push(new TrailBox(opts));
-			
-		} else { //if there's trails, checks if there's a minimum distance between them
-			
+
+		if(this.trail.length == 0) { // if there's no trail
+
+			this.trail.push(new TrailBox(opts));
+
+		} else { // if there's trails, checks if there's a minimum distance between them
+
 			var lastTrail = this.trail[this.trail.length - 1];
 			var line = new Line (new Point (lastTrail.style.x, lastTrail.style.y), 
 					new Point(opts.x, opts.y));
-			
+
 			if (line.getLength() > this.distanceBetweenTrails)
 				this.trail.push(new TrailBox(opts));
 		};
@@ -115,7 +109,7 @@ exports = new Class(View, function(supr) {
 		var line = new Line(currentPosition, nextPosition);
 		var distance = line.getLength();
 
-		deltaTime = distance / this.velocity;
+		deltaTime = distance / Math.abs(this.velocity);
 		
 		animate(this).now(nextPosition, deltaTime, animate.linear)
 		.then(function() {
