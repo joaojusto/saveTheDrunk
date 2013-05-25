@@ -12,7 +12,7 @@ import .TrailBox as TrailBox;
 exports = new Class(View, function(supr) {
 
 	//minimum distance between trail dots
-	this.minDistanceBetweenTrails = 2;
+	this.minDistanceBetweenTrails = 1;
 
 	//class constructor;
 	this.init = function(opts) {
@@ -61,12 +61,11 @@ exports = new Class(View, function(supr) {
 
 		this.on('Drag', function (startEvt, dragEvt, delta) {
 			if (delta.getMagnitude() > this.minDistanceBetweenTrails) {
-				//Note: we need to add half the size of the view in order to drag from the center and not
-				//from the top left corner
+				//TODO: see why the same code from drag start doesnt work WTF WTF -------------!!!!!!!!!!!!!
 	  		var opts = {
 					superview: GC.app.view,
-					x: dragEvt.srcPt.x + this.style.x * 0.5,
-					y: dragEvt.srcPt.y + this.style.y * 0.5
+					x: dragEvt.point[1].x,
+					y: dragEvt.point[1].y
 				};
 
 				this.addTrail(opts);
