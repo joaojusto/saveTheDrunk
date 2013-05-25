@@ -12,9 +12,7 @@ import .TrailBox as TrailBox;
 exports = new Class(View, function(supr) {
 
 	//minimum distance between trail dots
-	this.distanceBetweenTrails = 10;
-	//the max displacement every frame in pixels;
-	this.maxdisplacement = 5;
+	this.minDistanceBetweenTrails = 2;
 
 	//class constructor;
 	this.init = function(opts) {
@@ -35,15 +33,11 @@ exports = new Class(View, function(supr) {
 		this.trail = [];
 
 		//velocity value;
-		this.velocity = 0.15;
-
-		//starts the animation engine;
-		this.animate();
+		this.velocity = 0.2;
 
 		//if is touched, sets the target on main function to himself;
 		this.on('InputStart', function (event, point) {
-  		console.log("This view had touch begin on it at: " + point.x + "," + point.y);
-
+  		//we need to tell the view that this is actualy a drag so that it can fire drag events
   		this.startDrag({
         inputStartEvt: event,
         radius: 10
@@ -51,14 +45,48 @@ exports = new Class(View, function(supr) {
 		});
 
 		this.on('DragStart', function (dragEvt) {
-  		console.log("Drag started at (", dragEvt.srcPt.x, ",", dragEvt.srcPt.y, ") screen coordinates" );
+			//remove any previous trail, we are going to start a new one
+			this.cleanTrail();
+
+			//Note: we need to add half the size of the view in order to drag from the center and not
+			//from the top left corner
+			var opts = {
+				superview: GC.app.view,
+				x: dragEvt.srcPt.x + this.style.x * 0.5,
+				y: dragEvt.srcPt.y + this.style.y * 0.5
+			};
+
+			this.addTrail(opts);
 		});
 
 		this.on('Drag', function (startEvt, dragEvt, delta) {
-  		console.log("Drag continued at (", dragEvt.srcPt.x, ",", dragEvt.srcPt.y, ") screen coordinates" );
+			if (delta.getMagnitude() > this.minDistanceBetweenTrails) {
+				//Note: we need to add half the size of the view in order to drag from the center and not
+				//from the top left corner
+	  		var opts = {
+					superview: GC.app.view,
+					x: dragEvt.srcPt.x + this.style.x * 0.5,
+					y: dragEvt.srcPt.y + this.style.y * 0.5
+				};
+
+				this.addTrail(opts);
+			}
 		});
 
+		//starts the animation engine;
+		this.animate();
+	};
 
+	this.addTrail = function(options) {
+		this.trail.push(new TrailBox(options));
+	};
+
+	//remove all the trail dots
+	this.cleanTrail = function () {
+		for (i = 0; i < this.trail.length; i++) {
+			this.trail[i].clean();
+		}
+		this.trail = [];
 	};
 
 	// handles the drunk animation events
@@ -88,7 +116,7 @@ exports = new Class(View, function(supr) {
 		var line = new Line(currentPosition, nextPosition);
 		var distance = line.getLength();
 
-		deltaTime = distance / Math.abs(this.velocity);
+		deltaTime = distance / this.velocity;
 
 		animate(this).now(nextPosition, deltaTime, animate.linear)
 		.then(function() {
