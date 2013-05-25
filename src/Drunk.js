@@ -12,13 +12,11 @@ import .TrailBox as TrailBox;
 exports = new Class(View, function(supr) {
 
 	//minimum distance between trail dots
-	this.distanceBetweenTrails = 10;
-	//the max displacement every frame in pixels;
-	this.maxdisplacement = 2;
-	
+	this.minDistanceBetweenTrails = 1;
+
 	//class constructor;
 	this.init = function(opts) {
-		
+
 		var drunkOptions = {
 		width: 50,
 		height: 50,
@@ -26,60 +24,69 @@ exports = new Class(View, function(supr) {
 		offsetY: -25,
 		backgroundColor: "#000000"
 		};
-		
+
 		//merge the options passed to this function and
 		//those initialized above;
 		supr(this, "init", [merge(opts, drunkOptions)]);
-		
+
 		//the trailBox array;
 		this.trail = [];
-		
+
 		//velocity value;
-		this.velocity = 0.15;
-		
+		this.velocity = 0.2;
+
+		//if is touched, sets the target on main function to himself;
+		this.on('InputStart', function (event, point) {
+  		//we need to tell the view that this is actualy a drag so that it can fire drag events
+  		this.startDrag({
+        inputStartEvt: event,
+        radius: 10
+      });
+		});
+
+		this.on('DragStart', function (dragEvt) {
+			//remove any previous trail, we are going to start a new one
+			this.cleanTrail();
+
+			//Note: we need to add half the size of the view in order to drag from the center and not
+			//from the top left corner
+			var opts = {
+				superview: GC.app.view,
+				x: dragEvt.srcPt.x + this.style.x * 0.5,
+				y: dragEvt.srcPt.y + this.style.y * 0.5
+			};
+
+			this.addTrail(opts);
+		});
+
+		this.on('Drag', function (startEvt, dragEvt, delta) {
+			if (delta.getMagnitude() > this.minDistanceBetweenTrails) {
+				//TODO: see why the same code from drag start doesnt work WTF WTF -------------!!!!!!!!!!!!!
+	  		var opts = {
+					superview: GC.app.view,
+					x: dragEvt.point[1].x,
+					y: dragEvt.point[1].y
+				};
+
+				this.addTrail(opts);
+			}
+		});
+
 		//starts the animation engine;
 		this.animate();
-		
-		//if is touched, sets the target on main function to himself;
-		this.onInputStart = function () {
-			
-			target = GC.app.target;
-			index = GC.app.drunks.indexOf(this);
-			
-			//only starts recording if theres is no recording target;
-			if(target == -1) {
-				GC.app.target = index;
-				this.cleanTrail();
-			};
-		};
 	};
 
-	//actually add the trails
-	this.addTrail = function (opts) {
-
-		if(this.trail.length == 0) { // if there's no trail
-
-			this.trail.push(new TrailBox(opts));
-
-		} else { // if there's trails, checks if there's a minimum distance between them
-
-			var lastTrail = this.trail[this.trail.length - 1];
-			var line = new Line (new Point (lastTrail.style.x, lastTrail.style.y), 
-					new Point(opts.x, opts.y));
-
-			if (line.getLength() > this.distanceBetweenTrails)
-				this.trail.push(new TrailBox(opts));
-		};
+	this.addTrail = function(options) {
+		this.trail.push(new TrailBox(options));
 	};
 
 	//remove all the trail dots
 	this.cleanTrail = function () {
-		
 		for (i = 0; i < this.trail.length; i++) {
 			this.trail[i].clean();
 		}
 		this.trail = [];
-	}
+	};
 
 	// handles the drunk animation events
 	this.animate = function() {
@@ -88,8 +95,8 @@ exports = new Class(View, function(supr) {
 		//if the trail box is empty continues moving in the direction of the last post;
 		if(this.trail.length === 0) {
 			nextPosition = {
-					x: this.style.x + this.velocity,
-					y: this.style.y + this.velocity
+				x: this.style.x + this.velocity,
+				y: this.style.y + this.velocity
 			};
 
 		} else {
@@ -108,8 +115,8 @@ exports = new Class(View, function(supr) {
 		var line = new Line(currentPosition, nextPosition);
 		var distance = line.getLength();
 
-		deltaTime = distance / Math.abs(this.velocity);
-		
+		deltaTime = distance / this.velocity;
+
 		animate(this).now(nextPosition, deltaTime, animate.linear)
 		.then(function() {
 			this.animate();
