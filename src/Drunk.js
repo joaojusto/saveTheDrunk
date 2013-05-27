@@ -39,24 +39,16 @@ exports = new Class(View, function(supr) {
 		this.on('InputStart', function (event, point) {
   		//we need to tell the view that this is actualy a drag so that it can fire drag events
   		this.startDrag({
-        inputStartEvt: event,
-        radius: 10
-      });
+  			inputStartEvt: event,
+  			radius: 10
+  			});
 		});
 
 		this.on('DragStart', function (dragEvt) {
 			//remove any previous trail, we are going to start a new one
+			
+			//TODO: https://groups.google.com/forum/?fromgroups#!topic/game-closure-devkit/6YPa6KABFhw
 			this.cleanTrail();
-
-			//Note: we need to add half the size of the view in order to drag from the center and not
-			//from the top left corner
-			var opts = {
-				superview: GC.app.view,
-				x: dragEvt.point[1].x,
-				y: dragEvt.point[1].y
-			};
-
-			this.addTrail(opts);
 		});
 
 		this.on('Drag', function (startEvt, dragEvt, delta) {
