@@ -52,8 +52,8 @@ exports = new Class(View, function(supr) {
 			//from the top left corner
 			var opts = {
 				superview: GC.app.view,
-				x: dragEvt.srcPt.x + this.style.x * 0.5,
-				y: dragEvt.srcPt.y + this.style.y * 0.5
+				x: dragEvt.point[1].x,
+				y: dragEvt.point[1].y
 			};
 
 			this.addTrail(opts);
