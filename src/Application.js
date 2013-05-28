@@ -1,5 +1,6 @@
 //Devkit Imports
 import device;
+import ui.ImageView as ImageView;
 //Our Imports
 import .Drunk as Drunk;
 import .TrailBox as TrailBox;
@@ -19,7 +20,15 @@ exports = Class(GC.Application, function () {
 		//Creates and manage the flow between menus
 		Menus.createMenus();
 
-		this.style.backgroundColor = "#FFFFFF";
+		var background = new ImageView({
+		      superview: this.view,
+		      x: 0,
+		      y: 0,
+		      width: BOUNDS_WIDTH,
+		      height: BOUNDS_HEIGHT,
+		      image: "resources/images/backgrounds/background.png",
+		      zIndex: 0
+		    });
 
 		//Drunk array;
 		this.drunks = [

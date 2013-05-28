@@ -1,15 +1,15 @@
 //DevKit imports
 import animate;
-import ui.View as View;
 import math.geom.Line as Line;
 import math.geom.Rect as Rect;
 import math.geom.Point as Point;
+import ui.ImageView as ImageView;
 import math.geom.intersect as intersect;
 
 //our our imports
 import .TrailBox as TrailBox;
 
-exports = new Class(View, function(supr) {
+exports = new Class(ImageView, function(supr) {
 
 	//minimum distance between trail dots
 	this.minDistanceBetweenTrails = 1;
@@ -22,7 +22,7 @@ exports = new Class(View, function(supr) {
 		height: 50,
 		offsetX: -25,
 		offsetY: -25,
-		backgroundColor: "#000000"
+		image: "resources/images/characters/guy.png"
 		};
 
 		//merge the options passed to this function and
@@ -46,7 +46,6 @@ exports = new Class(View, function(supr) {
 
 		this.on('DragStart', function (dragEvt) {
 			//remove any previous trail, we are going to start a new one
-			
 			//TODO: https://groups.google.com/forum/?fromgroups#!topic/game-closure-devkit/6YPa6KABFhw
 			this.cleanTrail();
 		});
